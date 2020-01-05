@@ -17,18 +17,20 @@
 
 package org.apache.dsext.spark.datasource.rest
 
+import java.net.URLEncoder
 import java.nio.charset.StandardCharsets
 
 import org.apache.spark.SparkContext
 import org.apache.spark.rdd.RDD
 import org.apache.spark.storage.StorageLevel
-
 import org.apache.spark.sql.SparkSession
 import org.apache.spark.sql.SQLContext
 import org.apache.spark.sql.Row
 import org.apache.spark.sql.Dataset
-import org.apache.spark.sql.types.{StringType, StructType, StructField}
+import org.apache.spark.sql.types.{StringType, StructField, StructType}
 import org.apache.spark.sql.sources.{BaseRelation, InsertableRelation, TableScan}
+
+import scala.collection.mutable.ArrayBuffer
 
 
 /*
@@ -112,6 +114,7 @@ case class RESTRelation(
     }
 
     val inputDataStr = prepareInputData(valuesArr)
+    val inputURL = preparePathParm(restOptions.url,valuesArr)
 
     val contentType = "application/" + restOptions.postInputFormat
     val userCred = if (restOptions.userId == "") ""
@@ -125,17 +128,44 @@ case class RESTRelation(
     // print("in callRest input data str : " + inputDataStr +
     //  ", contentType : " + contentType + "\n")
 
-    val resp = RestConnectorUtil.callRestAPI(restOptions.url, inputDataStr,
+    val resp = RestConnectorUtil.callRestAPI(inputURL, inputDataStr,
            restOptions.method, oauthStr, userCred, connectionStr,
            contentType, "BODY").asInstanceOf[String]
     prepareOutputData(valuesArr, resp)
 
   }
 
-  private def prepareInputData(valArray: Array[String]) : String = {
+  def prepareTextInput(keys: Array[String], values: Array[String]) : String = {
 
+    val keysLength = keys.length
+    var cnt = 0
+    val outArrB : ArrayBuffer[String] = new ArrayBuffer[String](keysLength)
+
+    while (cnt < keysLength) {
+      outArrB += URLEncoder.encode(keys(cnt)) + "=" + URLEncoder.encode(values(cnt))
+      cnt += 1
+    }
+
+    outArrB.mkString("&")
+
+  }
+
+  private def preparePathParm(url : String, valArray: Array[String]) : String = {
+    val keyArr = getInputKeys()
+    //TODO - move the creation of the URL template into RESTOptions, this way we only pay for it once.
+    val urlt = new URLTemplate(url)
+    return urlt.hydrate(keyArr, valArray)
+  }
+
+  private def getInputKeys(): Array[String] ={
     val inputDataKeys = restOptions.inputKeys
     val keyArr = if (inputDataKeys == "") columnNames else inputDataKeys.split(",")
+    return keyArr
+  }
+
+  private def prepareInputData(valArray: Array[String]) : String = {
+
+    val keyArr = getInputKeys()
 
     if(restOptions.method == "GET") {
         RestConnectorUtil.prepareTextInput(keyArr, valArray)

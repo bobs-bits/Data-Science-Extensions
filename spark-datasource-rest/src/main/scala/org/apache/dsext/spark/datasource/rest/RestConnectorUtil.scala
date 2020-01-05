@@ -50,8 +50,11 @@ object RestConnectorUtil {
 
 
     var httpc = (method: @switch) match {
-      case "GET" => Http(addQryParmToUri(uri, data)).header("contenty-type",
-                     "application/x-www-form-urlencoded")
+      //TODO - this should probably be application/json; we are not posting binary data
+      //case "GET" => Http(addQryParmToUri(uri, data)).header("content-type",
+      //               "application/x-www-form-urlencoded")
+      case "GET" => Http(addQryParmToUri(uri, data)).header("content-type",
+        "application/json")
       case "PUT" => Http(uri).put(data).header("content-type", contentType)
       case "DELETE" => Http(uri).method("DELETE")
       case "POST" => Http(uri).postData(data).header("content-type", contentType)
@@ -91,6 +94,11 @@ object RestConnectorUtil {
 
     resp
   }
+
+  private def addPathParmToUri(uri: String, data: String) : String = {
+    if (uri contains "?") uri + "&" + data else uri + "?" + data
+  }
+
 
   private def addQryParmToUri(uri: String, data: String) : String = {
       if (uri contains "?") uri + "&" + data else uri + "?" + data
