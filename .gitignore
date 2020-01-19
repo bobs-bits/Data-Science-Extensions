@@ -1,2 +1,6 @@
 .idea/*
 !/.idea/runConfigurations
+.classpath
+.project
+.settings/
+target/

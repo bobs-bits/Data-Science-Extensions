@@ -22,7 +22,7 @@ package org.apache.dsext.spark.datasource.rest
 import org.apache.spark.sql.SparkSession
 
 
-object LocalSoda2TestProgram {
+object LocalSodaTestProgram {
 
   def main(args: Array[String]): Unit =  {
     //val logFile = "YOUR_SPARK_HOME/README.md" // Should be some file on your system

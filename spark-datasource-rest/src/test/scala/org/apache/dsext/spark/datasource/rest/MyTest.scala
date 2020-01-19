@@ -21,7 +21,7 @@ class MyTest extends FlatSpec with BeforeAndAfterEach with DataFrameSuiteBase {
   import com.github.tomakehurst.wiremock.junit.WireMockRule
   import org.junit.Rule
 
-  @Rule var wm = new WireMockRule(options.extensions(new ResponseTemplateTransformer(false)))
+  @Rule var wm = new WireMockRule(wireMockConfig().extensions(new ResponseTemplateTransformer(false)))
 
   private val wireMockServer = new WireMockServer(wireMockConfig().port(port))
 
